@@ -50,8 +50,6 @@ const Login = () => {
     useEffect(() => {
 
         if (!showLogin) return
-
-        console.log("Show Login: ", showLogin)
         document.body.style.overflow = "hidden"
         setTimeout(() => {
             document.querySelector(".si-lg-frm").style.transform = "translateY(-10%)"

@@ -61,8 +61,6 @@ export const loginUser = async (req, res) => {
             return res.json({success: false, message: "User Not Found!"})
         }
 
-        console.log("Password: ", password, "\nHash: ", user.password)
-
         const isMatch = await bcrypt.compare(password, user.password)
 
         if (!isMatch) {
@@ -127,7 +125,6 @@ export const isAuth = async (req, res) => {
 export const userCredits = async (req, res) => {
     try {
         const {user_id} = req.headers
-        console.log("User ID: ", user_id)
 
         const user = await User.findById(user_id)
 
