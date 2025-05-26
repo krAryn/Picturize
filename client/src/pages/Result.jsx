@@ -1,15 +1,46 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { assets } from '../assets/assets'
 import {BarLoader} from 'react-spinners'
 import { useAppContext } from '../context/AppContext'
+import { useSearchParams } from 'react-router'
+import { toast } from 'react-toastify'
 
 const Result = () => {
 
   const [image, setImage] = useState(assets.sample_img_1)
-  const [imageLoaded, setImageLoaded] = useState(false)
+  // const [imageLoaded, setImageLoaded] = useState(false)
   const [loading, setLoading] = useState(false)
   const [input, setInput] = useState()
-  const {motion, generateImage} = useAppContext()
+  const {motion, generateImage, axios, loadCreditsData} = useAppContext()
+
+  const [searchParams, _] = useSearchParams();
+
+  const verifyPayment = async () => {
+    try {
+
+      if (searchParams.get("session_id")) {
+        const {data} = await axios.get("/api/user/verify-pay", {
+          headers: {
+            session_id: searchParams.get("session_id")
+          }
+        })
+    
+        if (data.success) {
+          loadCreditsData()
+          toast.success("Credits Successfully Added to your Account")
+        } else {
+          toast.error(data.message)
+        }
+      }
+
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+  
+  useEffect(() => {
+    verifyPayment()
+  }, [searchParams])
 
   const submitHandler = async (e) => {
     e.preventDefault()

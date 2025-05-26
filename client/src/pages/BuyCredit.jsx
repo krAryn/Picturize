@@ -1,10 +1,33 @@
 import React from 'react'
 import { assets, plans } from '../assets/assets'
 import { useAppContext } from '../context/AppContext'
+import { toast } from 'react-toastify'
 
 const BuyCredit = () => {
 
-  const {user, motion} = useAppContext()
+  const {user, motion, setShowLogin, axios, navigate} = useAppContext()
+
+  const handleSubmit = async (item) => {
+
+    try {
+      if (!user) {
+        setShowLogin(true)
+      } else {
+        // send req to backend for purchase
+        const {data} = await axios.post("/api/user/init-pay", {
+          planName: item.id,
+          desc: item.desc,
+          amount: item.price,
+          credits: item.credits
+        })
+        // get checkout url and navigate
+        window.open(data.url, "_self")
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
+
+  }
 
   return (
     <motion.div className='min-h-[80vh] text-center pt-14 mb-10'
@@ -17,12 +40,12 @@ const BuyCredit = () => {
       <div className='flex flex-wrap justify-center gap-6 text-left'>
         {plans.map((item, index) => (
           <div key={index}
-          className='bg-white shadow border border-gray-300 rounded-lg py-12 px-8 text-gray-600 hover:scale-105 transition-all duration-500'>
+          className='bg-white shadow border border-gray-300 rounded-lg py-12 px-8 text-gray-600 hover:scale-105 transition-all duration-500 max-w-[310px]'>
             <img src={assets.logo_icon} className='h-[30px]' alt="" />
             <p className='mt-3 mb-1 font-semibold'>{item.id}</p>
             <p className='text-sm'>{item.desc}</p>
             <p className='mt-6 '><span className='text-3xl font-medium'>₹{item.price}</span> / {item.credits} credits</p>
-            <button className='w-full bg-gray-800 text-white mt-8 text-sm rounded-md py-2.5 min-w-52'>{user ? "Purchase":"Get Started"}</button>
+            <button onClick={() => handleSubmit(item)} className='w-full bg-gray-800 text-white mt-8 text-sm rounded-md py-2.5 min-w-52 cursor-pointer'>{user ? "Purchase":"Get Started"}</button>
           </div>
         ))}
       </div>

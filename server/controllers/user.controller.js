@@ -1,7 +1,7 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
-
+import Stripe from "stripe"
 
 // Path: /api/user/register
 export const registerUser = async (req, res) => {
@@ -158,6 +158,72 @@ export const logout = async (req, res) => {
         return res.json({success: true, message: "Logged Out"})
     } catch (error) {
         console.log("Can't Log out \nError: ", error.message)
+        return res.json({success: false, message: error.message})
+    }
+}
+
+// Path: /api/user/init-pay
+export const initiatePayment = async (req, res) => {
+    try {
+        const {user_id} = req.headers
+        const {planName, desc, amount, credits} = req.body
+
+        const stripe = Stripe(process.env.STRIPE_SECRET_KEY)
+
+        const line_items = [
+            {
+                price_data: {
+                    currency: "inr",
+                    unit_amount: amount * 100,
+                    product_data: {
+                        name: planName,
+                        description: desc
+                    }
+                },
+                quantity: 1
+            }
+        ]
+
+        const session = await stripe.checkout.sessions.create({
+            line_items,
+            mode: "payment",
+            success_url: `${process.env.FRONTEND_URL}/result?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${process.env.FRONTEND_URL}/buy-credit`,
+            metadata: {
+                user_id,
+                planName,
+                credits
+            }
+        })
+
+        return res.json({success: true, url: session.url, id: session.id})
+
+    } catch (error) {
+        console.log("Payment Initiations Failed \nError: ", error.message)
+        return res.json({success: false, message: error.message})
+    }
+}
+
+// Path: /api/user/verify-pay
+export const verifyPayment = async (req, res) => {
+    try {
+        const {session_id, user_id} = req.headers
+
+        const stripe = Stripe(process.env.STRIPE_SECRET_KEY)
+        
+        const session = await stripe.checkout.sessions.retrieve(session_id)
+
+        if (session.payment_status === "paid") {
+            // paid
+            const user = await User.findById(user_id)
+            await User.findByIdAndUpdate(user_id, {creditBalance: user.creditBalance + Number(session.metadata.credits)})
+            return res.json({success: true, message: "Payment Successful"})
+        } else {
+            // unpaid
+            return res.json({success: false, message: "Payment Failed! Please Retry."})
+        }
+    } catch (error) {
+        console.log("Payment Verification Failed \nError: ", error.message)
         return res.json({success: false, message: error.message})
     }
 }

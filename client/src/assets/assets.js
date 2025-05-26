@@ -87,21 +87,21 @@ export const testimonialsData = [
 
 export const plans = [
   {
-    id: 'Basic',
-    price: 10,
+    id: 'Basic Plan',
+    price: 10 * 80,
     credits: 100,
-    desc: 'Best for personal use.'
+    desc: 'Limited prompts, standard quality, ideal for starters.'
   },
   {
-    id: 'Advanced',
-    price: 50,
+    id: 'Pro Plan',
+    price: 50 * 80,
     credits: 500,
-    desc: 'Best for business use.'
+    desc: 'More prompts, faster renders, high-res images.'
   },
   {
-    id: 'Business',
-    price: 250,
+    id: 'Elite Plan',
+    price: 250 * 80,
     credits: 5000,
-    desc: 'Best for enterprise use.'
+    desc: 'Unlimited prompts, premium quality, priority support.'
   },
 ]
